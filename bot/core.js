@@ -25,7 +25,7 @@ function configFromEnv(E) {
     welcomeBonus: +(E.WELCOME_BONUS || 300),
     birthdayBonus: +(E.BIRTHDAY_BONUS || 1000),
     maxBonusShare: +(E.MAX_BONUS_SHARE || 0.3),
-    levels: JSON.parse(E.LEVELS || '[{"name":"Choice","from":0,"rate":0.03},{"name":"Prime","from":20000,"rate":0.05},{"name":"Вагю A5","from":60000,"rate":0.07}]'),
+    levels: JSON.parse(E.LEVELS || '[{"name":"1 уровень","from":0,"rate":0.01},{"name":"2 уровень","from":200000,"rate":0.02},{"name":"3 уровень","from":300000,"rate":0.03},{"name":"4 уровень","from":400000,"rate":0.04},{"name":"5 уровень","from":500000,"rate":0.05}]'),
     sms: { provider: E.SMS_PROVIDER || '', key: E.SMS_API_KEY || '', from: E.SMS_FROM || '' },
     siteUrl: E.SITE_URL || 'http://lidmasterapp.ru/myaso-kubani/',
     mapUrl: E.MAP_URL || 'https://yandex.ru/maps/org/myaso_kubani_i_steyki/72276710971/',
@@ -319,13 +319,13 @@ function createShop(opts) {
       return `Списанные бонусы (${o.bonusUsed}) вернули на счёт.`;
     }
     if (o.status === 'done' && !o.cashback) {
-      const paidGoods = o.final != null ? o.final - o.delivery : o.goods - (o.bonusUsed || 0);
+      const paidGoods = Math.max(0, o.final != null ? o.final - o.delivery : o.goods - (o.bonusUsed || 0));
+      const previousLevel = levelOf(u.spent);
+      u.spent += paidGoods;
       const lvl = levelOf(u.spent);
-      o.cashback = Math.floor(Math.max(0, paidGoods) * lvl.rate);
-      u.spent += Math.max(0, paidGoods);
+      o.cashback = Math.floor(paidGoods * lvl.rate);
       bonus(u, o.cashback, `Кешбэк ${Math.round(lvl.rate * 100)}% за заказ`, o.no);
-      const L = levelOf(u.spent);
-      return `Начислили ${o.cashback} бонусов. На счёте: ${u.bonus}.` + (L.name !== lvl.name ? ` Новый уровень: ${L.name}!` : '');
+      return `Начислили ${o.cashback} бонусов. На счёте: ${u.bonus}.` + (lvl.name !== previousLevel.name ? ` Новый уровень: ${lvl.name}, кешбэк ${Math.round(lvl.rate * 100)}%!` : '');
     }
     return '';
   }
@@ -523,7 +523,7 @@ function createShop(opts) {
       return send(`📦 <b>Ваши заказы</b>\n\n${lines.join('\n\n')}`, inline([[urlBtn('👤 Все заказы в личном кабинете', site('#account'))]]));
     }
     if (text === BTN.bonus || /^\/bonus/.test(text)) {
-      if (!u) return send(`🎁 <b>Бонусы</b>\n\n300 бонусов за регистрацию, кешбэк 3–7% с каждого заказа и 1 000 в день рождения. Бонусами можно оплатить до ${Math.round(C.maxBonusShare * 100)}% заказа.\n\nНажмите «${BTN.phone}» внизу, чтобы подключить бонусы.`, { reply_markup: mainKb(chat) });
+      if (!u) return send(`🎁 <b>Бонусы</b>\n\n300 бонусов за регистрацию, кешбэк 1–5% с каждого заказа и 1 000 в день рождения. Бонусами можно оплатить до ${Math.round(C.maxBonusShare * 100)}% заказа.\n\nНажмите «${BTN.phone}» внизу, чтобы подключить бонусы.`, { reply_markup: mainKb(chat) });
       const L = levelOf(u.spent);
       return send(`🎁 <b>На счёте ${u.bonus} бонусов</b>\n\nУровень <b>${esc(L.name)}</b> — кешбэк ${Math.round(L.rate * 100)}%.${L.next ? `\nДо уровня ${esc(L.next.name)} (${Math.round(L.next.rate * 100)}%): покупки ещё на ${rub(L.next.need)}.` : ''}\n\n1 бонус = 1 ₽. Можно оплатить до ${Math.round(C.maxBonusShare * 100)}% заказа.${u.birthday ? '' : '\nУкажите день рождения в кабинете — подарим 1 000 бонусов.'}`,
         inline([[urlBtn('👤 Личный кабинет', site('#account'))]]));
@@ -1203,3 +1203,5 @@ function createShop(opts) {
 }
 
 module.exports = { createShop, configFromEnv, emptyDb };
+
+

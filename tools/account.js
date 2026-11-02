@@ -1,6 +1,6 @@
 /* ---------- API (real server or in-browser demo) ---------- */
 const API=(window.SHOP_API||'').replace(/\/$/,'');
-const LEVELS=[{name:'Choice',from:0,rate:.03},{name:'Prime',from:20000,rate:.05},{name:'Вагю A5',from:60000,rate:.07}];
+const LEVELS=[{name:'1 уровень',from:0,rate:.01},{name:'2 уровень',from:200000,rate:.02},{name:'3 уровень',from:300000,rate:.03},{name:'4 уровень',from:400000,rate:.04},{name:'5 уровень',from:500000,rate:.05}];
 const escA=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function api(path,body){
   if(!API)return demoApi(path,body);
@@ -59,7 +59,7 @@ function demoAdvance(no,status,fact){
   if(fact!=null)o.fact=fact;
   const u=o.user&&DS.users[o.user];
   if(u&&o.status==='cancel'&&o.bonusUsed&&!o.refunded){o.refunded=true;dsBonus(u,o.bonusUsed,'Возврат бонусов за отменённый заказ',no)}
-  if(u&&o.status==='done'&&!o.cashback){const paid=Math.max(0,(o.fact!=null?o.fact:o.goods)-o.bonusUsed),L=lvlOf(u.spent);o.cashback=Math.floor(paid*L.rate);u.spent+=paid;dsBonus(u,o.cashback,`Кешбэк ${Math.round(L.rate*100)}% за заказ`,no)}
+  if(u&&o.status==='done'&&!o.cashback){const paid=Math.max(0,(o.fact!=null?o.fact:o.goods)-o.bonusUsed);u.spent+=paid;const L=lvlOf(u.spent);o.cashback=Math.floor(paid*L.rate);dsBonus(u,o.cashback,`Кешбэк ${Math.round(L.rate*100)}% за заказ`,no)}
   dsSave();
 }
 
@@ -145,7 +145,7 @@ function accBody(){
 }
 function loginView(){
   const s=login;
-  const perks=`<ul class="perks big"><li><b>300 бонусов</b> сразу после регистрации</li><li><b>Кешбэк 3–7%</b> с каждого заказа бонусами</li><li><b>1 000 бонусов</b> в день рождения</li><li><b>История заказов</b> и повтор в один клик</li></ul>`;
+  const perks=`<ul class="perks big"><li><b>300 бонусов</b> сразу после регистрации</li><li><b>Кешбэк 1–5%</b> с каждого заказа бонусами</li><li><b>1 000 бонусов</b> в день рождения</li><li><b>История заказов</b> и повтор в один клик</li></ul>`;
   let form;
   if(s.step==='phone')form=`<form class="lform" id="lPhone"><div class="fld"><label for="l-phone">Номер телефона</label><input id="l-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 900 000-00-00" value="${escA(s.phone||'')}"></div>${AGREE('l-agree')}<p class="err" id="lErr" hidden></p><button class="btn btn-fill" type="submit">Получить код <span class="ar">→</span></button><p class="hint">Код придёт в Telegram от бота лавки. Пароль не нужен.</p></form>`;
   else if(s.step==='code')form=`<form class="lform" id="lCode"><p class="lstep">${escA(s.hint)}</p><div class="fld"><label for="l-code">Код из 6 цифр</label><input id="l-code" class="code-in num" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••"></div><p class="err" id="lErr" hidden></p><button class="btn btn-fill" type="submit">Войти</button><button class="btn btn-line" type="button" id="lBack">Изменить номер</button></form>`;
@@ -181,3 +181,4 @@ document.addEventListener('submit',async e=>{
   if(e.target.id==='profForm'){e.preventDefault();const body={name:$('#p-name').value,note:$('#p-note').value};const bd=$('#p-bd');if(bd&&bd.value.trim())body.birthday=bd.value.trim();
     try{ME=await api('/api/me',body);renderAccBtn();renderAccount();toast('Профиль сохранён')}catch(x){const er=$('#profErr');er.textContent=x.message;er.hidden=false}}
 });
+
