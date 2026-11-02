@@ -2020,7 +2020,7 @@ function renderItem(id){
     :`<div class="item-buy"><span class="item-price num">${p.old?`<s>${rub(p.old)}</s> `:''}${unitPrice(p)}${p.unit==='kg'?`<small>минимальный вес ${qLabel(p,minQ(p))}, шаг ${qLabel(p,stepQ(p))}</small>`:''}</span><button class="btn btn-fill" data-add="${p.id}">В корзину${plus}</button></div>`;
   $('#catView').innerHTML=`
   <div class="wrap item-pg">
-    <p class="crumbs mono"><a href="#top">Главная</a><span>/</span><a href="#${p.cat}">${CATS[p.cat].name}</a><span>/</span><span>${p.name}</span></p>
+    <p class="crumbs mono"><a href="#top">Главная</a><span>/</span><a href="#catalog">Каталог</a><span>/</span><a href="#${p.cat}">${CATS[p.cat].name}</a><span>/</span><a href="#item=${p.id}" aria-current="page">${p.name}</a></p>
     <div class="item-grid">
       <figure class="item-ph${p.fit==='cover'?' cover':''}">${p.img?`<img src="${p.img}" alt="${p.name}">`:''}${p.tag?`<span class="tag">${p.tag}</span>`:''}${p.badge&&BADGES[p.badge]?`<span class="badge b-${p.badge}">${BADGES[p.badge]}</span>`:''}</figure>
       <div class="item-info">
@@ -2042,7 +2042,7 @@ function renderCat(c){
   <nav class="cv-tabs cv-tabs-top" aria-label="Разделы каталога"><div class="wrap">${ORDER.map(k=>`<a href="#${k}"${k===c?' aria-current="page"':''}>${CATS[k].name}<sup class="num">${count(k)}</sup></a>`).join('')}</div></nav>
   <div class="wrap cv-hero">
     <div class="cv-copy">
-      <p class="crumbs mono"><a href="#top">Главная</a><span>/</span><span>Каталог</span><span>/</span><span>${m.name}</span></p>
+      <p class="crumbs mono"><a href="#top">Главная</a><span>/</span><a href="#catalog">Каталог</a><span>/</span><a href="#${c}" aria-current="page">${m.name}</a></p>
       <h1>${m.name}<em>${m.em}</em></h1>
       <p class="lead">${m.lead}</p>
       <div class="cv-facts mono num"><span><b>${plural(items.length)}</b></span>${m.facts.map(f=>`<span>${f}</span>`).join('')}</div>
@@ -2087,6 +2087,10 @@ function route(){
   $$('.nav a').forEach(a=>a.setAttribute('aria-current',a.getAttribute('href')==='#'+h?'page':'false'));
 }
 addEventListener('hashchange',route);
+document.addEventListener('click',e=>{
+  const a=e.target.closest('.crumbs a');
+  if(a&&a.getAttribute('href')===location.hash){e.preventDefault();route()}
+});
 
 /* ---------- магазины: ближайший по адресу доставки ---------- */
 // Те же id и координаты — в bot/core.js (DEFAULT_SHOPS).
