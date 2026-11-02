@@ -68,7 +68,7 @@ const ok = (name) => console.log('✓', name);
     r = await api('/api/auth/poll', { nonce }); assert.equal(r.j.ok, true); assert.match(r.cookie, /HttpOnly/); ok('номер подтверждён → сессия в HttpOnly-cookie');
     r = await api('/api/auth/poll', { nonce }); assert.equal(r.code, 400); ok('одноразовая ссылка не срабатывает повторно');
 
-    r = await api('/api/me'); assert.equal(r.j.phone, '+79165551240'); assert.equal(r.j.bonus, 300); assert.equal(r.j.level.name, 'Choice'); ok('кабинет: 300 приветственных бонусов, уровень Choice');
+    r = await api('/api/me'); assert.equal(r.j.phone, '+79165551240'); assert.equal(r.j.bonus, 300); assert.equal(r.j.level.name, '1 уровень'); ok('кабинет: 300 приветственных бонусов, уровень 1');
     r = await api('/api/me', null, { nocookie: true }); assert.equal(r.code, 401); ok('без входа кабинет закрыт');
 
     // --- 2. second login: code in Telegram, brute force protection
@@ -96,9 +96,9 @@ const ok = (name) => console.log('✓', name);
     assert.match(sent.find(m => m.message_id === staffMsg[o.no]).text, /Списано бонусов/);
     for (const a of ['paid', 'work', 'packed', 'road', 'done']) { press(`${a}:${o.no}`); await wait(250); }
     r = await api('/api/me');
-    const cb = Math.floor((4050 - 300) * 0.03);
+    const cb = Math.floor((4050 - 300) * 0.01);
     assert.equal(r.j.bonus, cb); assert.equal(r.j.orders[0].cashback, cb); assert.equal(r.j.orders[0].status, 'done');
-    assert.ok(sent.some(m => m.chat_id == USER_CHAT && /Начислили \d+ бонусов/.test(m.text))); ok(`кешбэк 3%: +${cb} бонусов, покупатель получил уведомление`);
+    assert.ok(sent.some(m => m.chat_id == USER_CHAT && /Начислили \d+ бонусов/.test(m.text))); ok(`кешбэк 1%: +${cb} бонусов, покупатель получил уведомление`);
 
     // --- 6. cancel returns bonuses
     r = await api('/api/orders', { consent: true, name: 'Анна', tel: PHONE, pickup: true, items: [{ id: 'chuck', q: 1 }], useBonus: 999 });
@@ -117,3 +117,4 @@ const ok = (name) => console.log('✓', name);
   } catch (e) { console.error('ТЕСТ УПАЛ:', e.stack, '\n', log); process.exitCode = 1; }
   srv.kill(); mock.close(); fs.rmSync(dataDir, { recursive: true, force: true });
 })();
+
